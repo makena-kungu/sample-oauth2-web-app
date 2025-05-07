@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Building Details</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@tailwindcss/browser@latest"></script>
+</head>
+<body class="bg-gray-100 font-inter">
+    <div class="container mx-auto p-8">
+        <h1 class="text-3xl font-semibold text-blue-600 text-center mb-6">Building Details</h1>
+
+        <div id="building-card" class="mt-8 bg-white shadow-md rounded-lg p-6">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Building Information</h2>
+            <div id="building-data">
+                <p class="text-gray-700">Loading building data...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const buildingApiUrl = 'http://localhost:5100/api/buildings/1';
+        const buildingDataContainer = document.getElementById('building-data');
+
+        function fetchBuildingData() {
+            fetch(buildingApiUrl, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                    // No Authorization header needed when relying on session cookies
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    console.error('Error fetching building data:', response.status);
+                    buildingDataContainer.innerHTML = `<p class="text-red-500">Error: ${response.statusText}</p>`;
+                    if (response.status === 401 || response.status === 403) {
+                        // Redirect to the login page or display a "not authorized" message
+                        window.location.href = '/'; // Redirect to the login page
+                    }
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Building data:', data);
+                buildingDataContainer.innerHTML = `
+                    <div class="border rounded-md p-4">
+                        <p><span class="font-semibold">ID:</span> ${data.id}</p>
+                        <p><span class="font-semibold">Name:</span> ${data.name}</p>
+                        <p><span class="font-semibold">Description:</span> ${data.description}</p>
+                        <p><span class="font-semibold">Rent Amount:</span> ${data.rent.amount} ${data.rent.symbol}</p>
+                        <p><span class="font-semibold">Created On:</span> ${data.createdOn}</p>
+                        <p><span class="font-semibold">Location URL:</span> <a href="${data.location.url}" target="_blank" class="text-blue-500 hover:underline">${data.location.url}</a></p>
+                        <p><span class="font-semibold">Location Short Form:</span> ${data.location.shortForm}</p>
+                        <p><span class="font-semibold">Country:</span> ${data.location.locationData.find(ld => ld.level === 'Country')?.value || 'N/A'}</p>
+                        <p><span class="font-semibold">Building Type:</span> ${data.buildingType.value || 'N/A'}</p>
+                        <p><span class="font-semibold">Thumbnail Title:</span> ${data.thumbnail.title}</p>
+                        <p><span class="font-semibold">Thumbnail URL:</span> <a href="${data.thumbnail.uri}" target="_blank" class="text-blue-500 hover:underline">${data.thumbnail.uri}</a></p>
+                        <p><span class="font-semibold">Rating:</span> ${data.rating}</p>
+                    </div>
+                `;
+            })
+            .catch(error => {
+                console.error('Error fetching building data:', error);
+                buildingDataContainer.innerHTML = `<p class="text-red-500">Error: ${error.message}</p>`;
+            });
+        }
+
+        // Call the function to fetch data when the page loads
+        fetchBuildingData();
+    </script>
+</body>
+</html>
