@@ -26,6 +26,7 @@
         function fetchBuildingData() {
             fetch(buildingApiUrl, {
                 method: 'GET',
+                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json'
                     // No Authorization header needed when relying on session cookies
